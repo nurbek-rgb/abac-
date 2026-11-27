@@ -1,0 +1,28 @@
+4 саясат жүктелді: /workspace/scratch/be34220c89dc/ABAC_Policy_Engine/policies.json
+
+1. Дәрігер, 10:00, корпоративтік құрылғы, оқу
+  Сұраныс: {location=office, device=corporate, time=10:00, action=read, role=doctor}
+  Шешім:   PERMIT [P1] — Рұқсат саясаты сәйкес келді: Дәрігер жұмыс уақытында оқиды
+
+2. Дәрігер, 20:00 (жұмыс уақытынан тыс)
+  Сұраныс: {location=office, device=corporate, time=20:00, action=read, role=doctor}
+  Шешім:   DENY — Ешбір саясат сәйкес келмеді (әдепкі тыйым)
+
+3. Әкімші, 23:30, белгісіз орын (P2 PERMIT және P3 DENY қатар сәйкес — DENY басым)
+  Сұраныс: {location=unknown, device=corporate, time=23:30, action=read, role=admin}
+  Шешім:   DENY [P3] — Тыйым салу саясаты сәйкес келді: Белгісіз орыннан кіруге тыйым
+
+4. Әкімші, жеке құрылғы
+  Сұраныс: {location=home, device=personal, time=12:00, action=read, role=admin}
+  Шешім:   DENY — Ешбір саясат сәйкес келмеді (әдепкі тыйым)
+
+5. Стажер, жою әрекеті
+  Сұраныс: {location=office, device=corporate, time=11:00, action=delete, role=intern}
+  Шешім:   DENY [P4] — Тыйым салу саясаты сәйкес келді: Стажерге жоюға тыйым
+
+6. Дәрігер, құрылғы көрсетілмеген (атрибут жоқ)
+  Сұраныс: {location=office, role=doctor, action=read, time=10:00}
+  Шешім:   DENY [P1] — PERMIT шарты дәлелденбеді: дерек жеткіліксіз/жарамсыз (fail-closed)
+
+
+PROCESS_EXIT_CODE=0

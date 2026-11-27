@@ -1,0 +1,3 @@
+Қате: Саясат файлын оқу мүмкін болмады: missing-file.json
+
+PROCESS_EXIT_CODE=1

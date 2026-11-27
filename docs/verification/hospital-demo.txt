@@ -1,0 +1,12 @@
+1. PERMIT [H1] — Рұқсат саясаты сәйкес келді: Дәрігер өз бөлімінің жазбасын оқиды
+2. DENY — Ешбір саясат сәйкес келмеді (әдепкі тыйым)
+3. PERMIT [H3] — Рұқсат саясаты сәйкес келді: Дәрігерге шұғыл жағдайда оқу рұқсаты
+4. PERMIT [H2] — Рұқсат саясаты сәйкес келді: Мейірбике өз бөлімінің жазбасын жұмыс уақытында оқиды
+5. DENY — Ешбір саясат сәйкес келмеді (әдепкі тыйым)
+6. DENY [H4] — Тыйым салу саясаты сәйкес келді: Мейірбикеге ем тағайындауға тыйым
+7. DENY [H5] — Тыйым салу саясаты сәйкес келді: Тіркеушіге медициналық жазбаны оқуға тыйым
+8. DENY [H1] — PERMIT шарты дәлелденбеді: дерек жеткіліксіз/жарамсыз (fail-closed)
+Stored audit totals (includes previous runs): AuditStats[total=8, permits=3, denies=5, emergencyPermits=1, byRole={registrar=1, nurse=3, doctor=4}, roles=[registrar, nurse, doctor]]
+SQLite, CSV, JSON: /workspace/scratch/be34220c89dc/ABAC_Policy_Engine/output
+
+PROCESS_EXIT_CODE=0

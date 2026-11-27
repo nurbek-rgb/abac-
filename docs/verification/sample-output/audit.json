@@ -1,0 +1,120 @@
+[ {
+  "id" : 1,
+  "timestamp" : "2026-11-27T04:03:16.560625868Z",
+  "attributes" : {
+    "device" : "corporate",
+    "action" : "read",
+    "department" : "icu",
+    "time" : "10:00",
+    "record_department" : "cardiology",
+    "role" : "doctor",
+    "emergency" : "false"
+  },
+  "effect" : "DENY",
+  "policyId" : null,
+  "reason" : "Ешбір саясат сәйкес келмеді (әдепкі тыйым)"
+}, {
+  "id" : 2,
+  "timestamp" : "2026-11-27T04:03:16.562128256Z",
+  "attributes" : {
+    "device" : "corporate",
+    "action" : "read",
+    "department" : "icu",
+    "time" : "10:00",
+    "record_department" : "icu",
+    "role" : "nurse",
+    "emergency" : "false"
+  },
+  "effect" : "PERMIT",
+  "policyId" : "H2",
+  "reason" : "Рұқсат саясаты сәйкес келді: Мейірбике өз бөлімінің жазбасын жұмыс уақытында оқиды"
+}, {
+  "id" : 3,
+  "timestamp" : "2026-11-27T04:03:16.561490875Z",
+  "attributes" : {
+    "device" : "corporate",
+    "action" : "read",
+    "department" : "icu",
+    "time" : "10:00",
+    "record_department" : "icu",
+    "role" : "doctor",
+    "emergency" : "false"
+  },
+  "effect" : "PERMIT",
+  "policyId" : "H1",
+  "reason" : "Рұқсат саясаты сәйкес келді: Дәрігер өз бөлімінің жазбасын оқиды"
+}, {
+  "id" : 4,
+  "timestamp" : "2026-11-27T04:03:16.560626172Z",
+  "attributes" : {
+    "device" : "corporate",
+    "action" : "read",
+    "department" : "icu",
+    "time" : "03:00",
+    "record_department" : "cardiology",
+    "role" : "doctor",
+    "emergency" : "true"
+  },
+  "effect" : "PERMIT",
+  "policyId" : "H3",
+  "reason" : "Рұқсат саясаты сәйкес келді: Дәрігерге шұғыл жағдайда оқу рұқсаты"
+}, {
+  "id" : 5,
+  "timestamp" : "2026-11-27T04:03:16.611979904Z",
+  "attributes" : {
+    "device" : "corporate",
+    "action" : "read",
+    "department" : "reception",
+    "time" : "10:00",
+    "record_department" : "icu",
+    "role" : "registrar",
+    "emergency" : "false"
+  },
+  "effect" : "DENY",
+  "policyId" : "H5",
+  "reason" : "Тыйым салу саясаты сәйкес келді: Тіркеушіге медициналық жазбаны оқуға тыйым"
+}, {
+  "id" : 6,
+  "timestamp" : "2026-11-27T04:03:16.605545503Z",
+  "attributes" : {
+    "device" : "corporate",
+    "action" : "prescribe",
+    "department" : "icu",
+    "time" : "10:00",
+    "record_department" : "icu",
+    "role" : "nurse",
+    "emergency" : "false"
+  },
+  "effect" : "DENY",
+  "policyId" : "H4",
+  "reason" : "Тыйым салу саясаты сәйкес келді: Мейірбикеге ем тағайындауға тыйым"
+}, {
+  "id" : 7,
+  "timestamp" : "2026-11-27T04:03:16.601346959Z",
+  "attributes" : {
+    "device" : "corporate",
+    "action" : "read",
+    "department" : "icu",
+    "time" : "23:00",
+    "record_department" : "icu",
+    "role" : "nurse",
+    "emergency" : "false"
+  },
+  "effect" : "DENY",
+  "policyId" : null,
+  "reason" : "Ешбір саясат сәйкес келмеді (әдепкі тыйым)"
+}, {
+  "id" : 8,
+  "timestamp" : "2026-11-27T04:03:16.618672525Z",
+  "attributes" : {
+    "role" : "doctor",
+    "department" : "icu",
+    "emergency" : "false",
+    "action" : "read",
+    "record_department" : "icu",
+    "time" : "10:00"
+  },
+  "effect" : "DENY",
+  "policyId" : "H1",
+  "reason" : "PERMIT шарты дәлелденбеді: дерек жеткіліксіз/жарамсыз (fail-closed)"
+} ]

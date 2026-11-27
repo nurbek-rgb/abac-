@@ -1,0 +1,16 @@
+{
+  "policies": [
+    {
+      "id": "NOT-DEVICE",
+      "effect": "PERMIT",
+      "description": "NOT regression",
+      "condition": {
+        "not": {
+          "attribute": "device",
+          "operator": "eq",
+          "value": "unknown"
+        }
+      }
+    }
+  ]
+}

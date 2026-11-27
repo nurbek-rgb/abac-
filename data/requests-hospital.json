@@ -1,0 +1,73 @@
+[
+  {
+    "role": "doctor",
+    "department": "icu",
+    "record_department": "icu",
+    "time": "10:00",
+    "emergency": "false",
+    "action": "read",
+    "device": "corporate"
+  },
+  {
+    "role": "doctor",
+    "department": "icu",
+    "record_department": "cardiology",
+    "time": "10:00",
+    "emergency": "false",
+    "action": "read",
+    "device": "corporate"
+  },
+  {
+    "role": "doctor",
+    "department": "icu",
+    "record_department": "cardiology",
+    "time": "03:00",
+    "emergency": "true",
+    "action": "read",
+    "device": "corporate"
+  },
+  {
+    "role": "nurse",
+    "department": "icu",
+    "record_department": "icu",
+    "time": "10:00",
+    "emergency": "false",
+    "action": "read",
+    "device": "corporate"
+  },
+  {
+    "role": "nurse",
+    "department": "icu",
+    "record_department": "icu",
+    "time": "23:00",
+    "emergency": "false",
+    "action": "read",
+    "device": "corporate"
+  },
+  {
+    "role": "nurse",
+    "department": "icu",
+    "record_department": "icu",
+    "time": "10:00",
+    "emergency": "false",
+    "action": "prescribe",
+    "device": "corporate"
+  },
+  {
+    "role": "registrar",
+    "department": "reception",
+    "record_department": "icu",
+    "time": "10:00",
+    "emergency": "false",
+    "action": "read",
+    "device": "corporate"
+  },
+  {
+    "role": "doctor",
+    "action": "read",
+    "department": "icu",
+    "record_department": "icu",
+    "time": "10:00",
+    "emergency": "false"
+  }
+]

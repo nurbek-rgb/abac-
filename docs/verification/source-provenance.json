@@ -1,0 +1,117 @@
+{
+  "repository": "https://github.com/nurbek-rgb/abac-",
+  "commit": "5035b9e1d308fc51b378863c94953ae013c9b7a6",
+  "reviewDate": "2026-11-27",
+  "files": [
+    {
+      "path": "AndNode.java",
+      "gitBlobSha": "e7e1d772ebcaa63a1d6eb216553e38e87e65d583",
+      "size": 729
+    },
+    {
+      "path": "AttributeContext.java",
+      "gitBlobSha": "0d4ea8d7e36306c90e13740875f298e2a8c8d453",
+      "size": 1986
+    },
+    {
+      "path": "BatchEvaluatorTest.java",
+      "gitBlobSha": "8b7b7c20d2392ffd0296cb9f8c32341f2facdc5f",
+      "size": 3079
+    },
+    {
+      "path": "ConditionNode.java",
+      "gitBlobSha": "317eca5888bd7ce5e29b8346e39cfb25009d0b6d",
+      "size": 5233
+    },
+    {
+      "path": "ConditionNodeTest.java",
+      "gitBlobSha": "97002590770208020cf2cd97b88b9f05a51ad25b",
+      "size": 3622
+    },
+    {
+      "path": "Decision.java",
+      "gitBlobSha": "8d7a50f83ba6658c6f4ec7290ac75f49c447ea57",
+      "size": 454
+    },
+    {
+      "path": "Effect.java",
+      "gitBlobSha": "fef9f42f71e75ff8ae868bdf661a575b80bae8a3",
+      "size": 239
+    },
+    {
+      "path": "HospitalPoliciesTest.java",
+      "gitBlobSha": "0cb8586449a87cbd496b73efd286e8720e667fde",
+      "size": 3439
+    },
+    {
+      "path": "InMemoryAuditRepositoryTest.java",
+      "gitBlobSha": "b80087d292365fde8fea3081d06ca2c4cfef24b1",
+      "size": 1414
+    },
+    {
+      "path": "Main.java",
+      "gitBlobSha": "2741692b236a0fd45164f8dc9c2fb3d4b3bf784b",
+      "size": 2735
+    },
+    {
+      "path": "NotNode.java",
+      "gitBlobSha": "cf2eeff0e3d27d77e2dd3fd96ae9602310219d61",
+      "size": 692
+    },
+    {
+      "path": "OrNode.java",
+      "gitBlobSha": "b7cd0826253365880db3c61141382f04debbb4ff",
+      "size": 735
+    },
+    {
+      "path": "Policy.java",
+      "gitBlobSha": "c5f05cd27e72e60ff9e0f2e1042907bfe362e878",
+      "size": 1334
+    },
+    {
+      "path": "PolicyEngine.java",
+      "gitBlobSha": "8e2560bee05dd4428e1644232d817f19e035c44f",
+      "size": 1271
+    },
+    {
+      "path": "PolicyEngineTest.java",
+      "gitBlobSha": "a9cdc23fde1cf376e5d39d8be6eeef219ea284f8",
+      "size": 2590
+    },
+    {
+      "path": "PolicyException.java",
+      "gitBlobSha": "4a071ed998dbb5d7dff5423dacaba2770a81002a",
+      "size": 398
+    },
+    {
+      "path": "PolicyLoader.java",
+      "gitBlobSha": "00c6d227d6c0fae5247596e3ae0b4766b2bb5267",
+      "size": 5877
+    },
+    {
+      "path": "PolicyLoaderTest.java",
+      "gitBlobSha": "c066b9235143518ba3e9172cc7444ec2219f5191",
+      "size": 4246
+    },
+    {
+      "path": "README.md",
+      "gitBlobSha": "40f71195a031e93ed1891f30615d6ebe82de990c",
+      "size": 7758
+    },
+    {
+      "path": "RuleNode.java",
+      "gitBlobSha": "482abeff93d286b2b7bd61c4a862a0bfa4893880",
+      "size": 266
+    },
+    {
+      "path": "SqliteAuditRepositoryTest.java",
+      "gitBlobSha": "8721d194460d2e5d3413d7c29f40300497d533ce",
+      "size": 2082
+    },
+    {
+      "path": "Проблема",
+      "gitBlobSha": "f3ee66742957b72fd50725e4ec56406e75ebbd67",
+      "size": 3799
+    }
+  ]
+}

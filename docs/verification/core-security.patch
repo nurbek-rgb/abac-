@@ -1,0 +1,476 @@
+--- a/src/main/java/kz/abac/AndNode.java
++++ b/src/main/java/kz/abac/AndNode.java
+@@ -14,12 +14,14 @@
+     }
+ 
+     @Override
+-    public boolean evaluate(AttributeContext ctx) {
++    public MatchResult evaluateResult(AttributeContext ctx) {
++        boolean unresolved = false;
+         for (RuleNode child : children) {
+-            if (!child.evaluate(ctx)) {
+-                return false;
+-            }
++            MatchResult result = child.evaluateResult(ctx);
++            if (result == MatchResult.FALSE) return MatchResult.FALSE;
++            if (result == MatchResult.INDETERMINATE) unresolved = true;
+         }
+-        return true;
++        return unresolved ? MatchResult.INDETERMINATE : MatchResult.TRUE;
+     }
+ }
++
+--- a/src/main/java/kz/abac/AttributeContext.java
++++ b/src/main/java/kz/abac/AttributeContext.java
+@@ -24,6 +24,9 @@
+         return new Builder();
+     }
+ 
++    /** Immutable snapshot for audit records and concurrent evaluation. */
++    public Map<String, String> attributes() { return attributes; }
++
+     public static final class Builder {
+         private final Map<String, String> map = new HashMap<>();
+ 
+@@ -40,8 +43,11 @@
+         }
+ 
+         public Builder attribute(String name, String value) {
++            if (name == null || name.isBlank()) throw new IllegalArgumentException("Attribute name is required");
+             if (value != null) {
+                 map.put(name, value);
++            } else {
++                map.remove(name);
+             }
+             return this;
+         }
+@@ -56,3 +62,4 @@
+         return attributes.toString();
+     }
+ }
++
+--- a/src/main/java/kz/abac/ConditionNode.java
++++ b/src/main/java/kz/abac/ConditionNode.java
+@@ -40,12 +40,17 @@
+ 
+     private final String attribute;
+     private final Operator operator;
++    private final String valueAttribute;
+     private final String value;          // eq, neq
+     private final List<String> values;   // in, not_in
+     private final LocalTime from;        // time_between
+     private final LocalTime to;
+ 
+     public ConditionNode(String attribute, Operator operator, String value, List<String> values) {
++        this(attribute, operator, value, null, values);
++    }
++
++    public ConditionNode(String attribute, Operator operator, String value, String valueAttribute, List<String> values) {
+         if (attribute == null || attribute.isBlank()) {
+             throw new PolicyException("Шартта 'attribute' көрсетілмеген");
+         }
+@@ -54,10 +59,15 @@
+         }
+         this.attribute = attribute;
+         this.operator = operator;
++        this.valueAttribute = valueAttribute;
++        if (valueAttribute != null && valueAttribute.isBlank()) throw new PolicyException("valueAttribute is blank");
++        if (operator != Operator.EQ && operator != Operator.NEQ && (value != null || valueAttribute != null)) {
++            throw new PolicyException("Only eq/neq support value or valueAttribute");
++        }
+ 
+         switch (operator) {
+             case EQ, NEQ -> {
+-                if (value == null) {
++                if ((value == null) == (valueAttribute == null) || values != null) {
+                     throw new PolicyException("'" + operator.json() + "' операторына 'value' қажет (атрибут: "
+                             + attribute + ")");
+                 }
+@@ -94,33 +104,39 @@
+     }
+ 
+     @Override
+-    public boolean evaluate(AttributeContext ctx) {
++    public MatchResult evaluateResult(AttributeContext ctx) {
+         Optional<String> actual = ctx.get(attribute);
+         if (actual.isEmpty()) {
+-            return false; // атрибут жоқ -> шарт орындалмайды (қауіпсіз жағы)
++            return MatchResult.INDETERMINATE;
+         }
+         String a = actual.get();
++        String expected = value;
++        if (valueAttribute != null) {
++            Optional<String> referenced = ctx.get(valueAttribute);
++            if (referenced.isEmpty()) return MatchResult.INDETERMINATE;
++            expected = referenced.get();
++        }
+         return switch (operator) {
+-            case EQ -> a.equals(value);
+-            case NEQ -> !a.equals(value);
+-            case IN -> values.contains(a);
+-            case NOT_IN -> !values.contains(a);
++            case EQ -> MatchResult.of(a.equals(expected));
++            case NEQ -> MatchResult.of(!a.equals(expected));
++            case IN -> MatchResult.of(values.contains(a));
++            case NOT_IN -> MatchResult.of(!values.contains(a));
+             case TIME_BETWEEN -> inTimeRange(a);
+         };
+     }
+ 
+     /** [from, to) аралығы; from > to болса, түн арқылы өтеді (22:00–06:00). */
+-    private boolean inTimeRange(String actual) {
++    private MatchResult inTimeRange(String actual) {
+         LocalTime t;
+         try {
+             t = parseTime(actual);
+         } catch (PolicyException e) {
+-            return false; // сұраныстағы уақыт форматы қате -> шарт орындалмайды
++            return MatchResult.INDETERMINATE; // invalid input is not evidence for NOT
+         }
+         if (from.isBefore(to)) {
+-            return !t.isBefore(from) && t.isBefore(to);
++            return MatchResult.of(!t.isBefore(from) && t.isBefore(to));
+         }
+-        return !t.isBefore(from) || t.isBefore(to);
++        return MatchResult.of(!t.isBefore(from) || t.isBefore(to));
+     }
+ 
+     static LocalTime parseTime(String text) {
+@@ -131,3 +147,4 @@
+         }
+     }
+ }
++
+--- a/src/main/java/kz/abac/Decision.java
++++ b/src/main/java/kz/abac/Decision.java
+@@ -12,3 +12,4 @@
+         return effect + (policyId == null ? "" : " [" + policyId + "]") + " — " + reason;
+     }
+ }
++
+--- a/src/main/java/kz/abac/Effect.java
++++ b/src/main/java/kz/abac/Effect.java
+@@ -5,5 +5,8 @@
+     PERMIT,
+     DENY,
+     /** Саясаттың шарты сұранысқа сәйкес келмеді. */
+-    NOT_APPLICABLE
++    NOT_APPLICABLE,
++    /** Internal policy result; the engine always returns PERMIT or DENY. */
++    INDETERMINATE
+ }
++
+--- a/src/main/java/kz/abac/Main.java
++++ b/src/main/java/kz/abac/Main.java
+@@ -9,6 +9,11 @@
+ public final class Main {
+ 
+     public static void main(String[] args) {
++        if (args.length > 0 && args[0].equals("--hospital")) {
++            try { HospitalDemo.main(java.util.Arrays.copyOfRange(args, 1, args.length)); }
++            catch (Exception e) { System.err.println("Қате: " + e.getMessage()); System.exit(1); }
++            return;
++        }
+         PrintStream out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
+         Path file = Path.of(args.length > 0 ? args[0] : "policies.json");
+ 
+@@ -57,3 +62,4 @@
+         out.println();
+     }
+ }
++
+--- a/src/main/java/kz/abac/NotNode.java
++++ b/src/main/java/kz/abac/NotNode.java
+@@ -4,8 +4,7 @@
+ 
+ /**
+  * Еншілес түйінді терістейді.
+- * Ескерту: жоқ атрибутқа қатысты жапырақ шарт false қайтарады, ал NOT оны true-ға айналдырады.
+- * Қауіпсіздік үшін "жоқ атрибут" жағдайын бөлек шартпен тексеріңіз.
++ * Жоқ/жарамсыз дерек INDETERMINATE болып қалады; true-ға айналмайды.
+  */
+ public final class NotNode implements RuleNode {
+     private final RuleNode child;
+@@ -15,7 +14,8 @@
+     }
+ 
+     @Override
+-    public boolean evaluate(AttributeContext ctx) {
+-        return !child.evaluate(ctx);
++    public MatchResult evaluateResult(AttributeContext ctx) {
++        return child.evaluateResult(ctx).not();
+     }
+ }
++
+--- a/src/main/java/kz/abac/OrNode.java
++++ b/src/main/java/kz/abac/OrNode.java
+@@ -14,12 +14,14 @@
+     }
+ 
+     @Override
+-    public boolean evaluate(AttributeContext ctx) {
++    public MatchResult evaluateResult(AttributeContext ctx) {
++        boolean unresolved = false;
+         for (RuleNode child : children) {
+-            if (child.evaluate(ctx)) {
+-                return true;
+-            }
++            MatchResult result = child.evaluateResult(ctx);
++            if (result == MatchResult.TRUE) return MatchResult.TRUE;
++            if (result == MatchResult.INDETERMINATE) unresolved = true;
+         }
+-        return false;
++        return unresolved ? MatchResult.INDETERMINATE : MatchResult.FALSE;
+     }
+ }
++
+--- a/src/main/java/kz/abac/Policy.java
++++ b/src/main/java/kz/abac/Policy.java
+@@ -26,8 +26,13 @@
+     public String getDescription() { return description; }
+     public Effect getEffect() { return effect; }
+ 
+-    /** Шарт орындалса саясаттың әсерін, әйтпесе NOT_APPLICABLE қайтарады. */
++    /** Distinguishes a false condition from one that cannot be evaluated. */
+     public Effect evaluate(AttributeContext ctx) {
+-        return condition.evaluate(ctx) ? effect : Effect.NOT_APPLICABLE;
++        return switch (condition.evaluateResult(ctx)) {
++            case TRUE -> effect;
++            case FALSE -> Effect.NOT_APPLICABLE;
++            case INDETERMINATE -> Effect.INDETERMINATE;
++        };
+     }
+ }
++
+--- a/src/main/java/kz/abac/PolicyEngine.java
++++ b/src/main/java/kz/abac/PolicyEngine.java
+@@ -11,10 +11,18 @@
+     }
+ 
+     public Decision evaluate(AttributeContext ctx) {
++        if (ctx == null) return new Decision(Effect.DENY, null, "Сұраныс жоқ (fail-closed)");
+         Policy firstPermit = null;
++        Policy unresolvedDeny = null;
++        Policy unresolvedPermit = null;
+ 
+         for (Policy p : policies) {
+-            Effect result = p.evaluate(ctx);
++            Effect result;
++            try {
++                result = p.evaluate(ctx);
++            } catch (RuntimeException e) {
++                return new Decision(Effect.DENY, p.getId(), "Саясатты бағалау қатесі (fail-closed)");
++            }
+             if (result == Effect.DENY) {
+                 // кем дегенде бір DENY сәйкес келсе, бірден тыйым
+                 return new Decision(Effect.DENY, p.getId(), "Тыйым салу саясаты сәйкес келді: " + p.getDescription());
+@@ -22,12 +30,25 @@
+             if (result == Effect.PERMIT && firstPermit == null) {
+                 firstPermit = p;
+             }
++            if (result == Effect.INDETERMINATE) {
++                if (p.getEffect() == Effect.DENY && unresolvedDeny == null) unresolvedDeny = p;
++                if (p.getEffect() == Effect.PERMIT && unresolvedPermit == null) unresolvedPermit = p;
++            }
+         }
+ 
++        if (unresolvedDeny != null) {
++            return new Decision(Effect.DENY, unresolvedDeny.getId(),
++                    "DENY саясатын тексеруге дерек жеткіліксіз/жарамсыз (fail-closed)");
++        }
+         if (firstPermit != null) {
+             return new Decision(Effect.PERMIT, firstPermit.getId(),
+                     "Рұқсат саясаты сәйкес келді: " + firstPermit.getDescription());
+         }
++        if (unresolvedPermit != null) {
++            return new Decision(Effect.DENY, unresolvedPermit.getId(),
++                    "PERMIT шарты дәлелденбеді: дерек жеткіліксіз/жарамсыз (fail-closed)");
++        }
+         return new Decision(Effect.DENY, null, "Ешбір саясат сәйкес келмеді (әдепкі тыйым)");
+     }
+ }
++
+--- a/src/main/java/kz/abac/PolicyException.java
++++ b/src/main/java/kz/abac/PolicyException.java
+@@ -10,3 +10,4 @@
+         super(message, cause);
+     }
+ }
++
+--- a/src/main/java/kz/abac/PolicyLoader.java
++++ b/src/main/java/kz/abac/PolicyLoader.java
+@@ -1,6 +1,8 @@
+ package kz.abac;
+ 
+ import com.fasterxml.jackson.core.JsonProcessingException;
++import com.fasterxml.jackson.core.JsonParser;
++import com.fasterxml.jackson.databind.DeserializationFeature;
+ import com.fasterxml.jackson.databind.JsonNode;
+ import com.fasterxml.jackson.databind.ObjectMapper;
+ 
+@@ -15,7 +17,9 @@
+ 
+ /** policies.json файлын оқиды, тексереді және ереже ағашын құрады. */
+ public final class PolicyLoader {
+-    private static final ObjectMapper MAPPER = new ObjectMapper();
++    private static final ObjectMapper MAPPER = new ObjectMapper()
++            .enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION)
++            .enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
+ 
+     private PolicyLoader() {
+     }
+@@ -31,6 +35,7 @@
+     }
+ 
+     public static List<Policy> parse(String json) {
++        if (json == null || json.isBlank()) throw new PolicyException("Жарамсыз JSON: empty input");
+         JsonNode root;
+         try {
+             root = MAPPER.readTree(json);
+@@ -41,6 +46,7 @@
+             throw new PolicyException("JSON түбірінде 'policies' массиві болуы керек");
+         }
+ 
++        checkFields(root, Set.of("policies"), "root");
+         List<Policy> result = new ArrayList<>();
+         Set<String> ids = new HashSet<>();
+         int index = 0;
+@@ -59,6 +65,7 @@
+         if (!p.isObject()) {
+             throw new PolicyException(where + ": саясат объект болуы керек");
+         }
++        checkFields(p, Set.of("id", "description", "effect", "condition"), where);
+         String id = text(p, "id", where);
+         where = "саясат '" + id + "'";
+ 
+@@ -78,10 +85,11 @@
+             throw new PolicyException(where + ": міндетті 'condition' өрісі жоқ");
+         }
+         String description = p.path("description").asText("");
+-        return new Policy(id, description, effect, parseNode(cond, where + ".condition"));
++        return new Policy(id, description, effect, parseNode(cond, where + ".condition", 0));
+     }
+ 
+-    private static RuleNode parseNode(JsonNode n, String path) {
++    private static RuleNode parseNode(JsonNode n, String path, int depth) {
++        if (depth > 128) throw new PolicyException(path + ": tree depth exceeds 128");
+         if (!n.isObject()) {
+             throw new PolicyException(path + ": шарт түйіні объект болуы керек");
+         }
+@@ -97,35 +105,40 @@
+         }
+ 
+         if (hasAnd) {
+-            return new AndNode(parseChildren(n.get("and"), path + ".and"));
++            checkFields(n, Set.of("and"), path);
++            return new AndNode(parseChildren(n.get("and"), path + ".and", depth + 1));
+         }
+         if (hasOr) {
+-            return new OrNode(parseChildren(n.get("or"), path + ".or"));
++            checkFields(n, Set.of("or"), path);
++            return new OrNode(parseChildren(n.get("or"), path + ".or", depth + 1));
+         }
+         if (hasNot) {
+-            return new NotNode(parseNode(n.get("not"), path + ".not"));
++            checkFields(n, Set.of("not"), path);
++            return new NotNode(parseNode(n.get("not"), path + ".not", depth + 1));
+         }
+         return parseLeaf(n, path);
+     }
+ 
+-    private static List<RuleNode> parseChildren(JsonNode arr, String path) {
++    private static List<RuleNode> parseChildren(JsonNode arr, String path, int depth) {
+         if (!arr.isArray() || arr.isEmpty()) {
+             throw new PolicyException(path + ": бос емес массив болуы керек");
+         }
+         List<RuleNode> children = new ArrayList<>();
+         int i = 0;
+         for (JsonNode child : arr) {
+-            children.add(parseNode(child, path + "[" + i++ + "]"));
++            children.add(parseNode(child, path + "[" + i++ + "]", depth));
+         }
+         return children;
+     }
+ 
+     private static RuleNode parseLeaf(JsonNode n, String path) {
+         try {
++            checkFields(n, Set.of("attribute", "operator", "value", "values", "valueAttribute"), path);
+             String attribute = text(n, "attribute", path);
+             ConditionNode.Operator op = ConditionNode.Operator.fromJson(text(n, "operator", path));
+ 
+-            String value = n.hasNonNull("value") ? n.get("value").asText() : null;
++            String value = n.has("value") ? scalar(n.get("value")) : null;
++            String reference = n.has("valueAttribute") ? text(n, "valueAttribute", path) : null;
+             List<String> values = null;
+             if (n.has("values")) {
+                 if (!n.get("values").isArray()) {
+@@ -133,13 +146,26 @@
+                 }
+                 values = new ArrayList<>();
+                 for (JsonNode v : n.get("values")) {
+-                    values.add(v.asText());
++                    values.add(scalar(v));
+                 }
+             }
+-            return new ConditionNode(attribute, op, value, values);
++            return new ConditionNode(attribute, op, value, reference, values);
+         } catch (PolicyException e) {
+             throw new PolicyException(path + ": " + e.getMessage(), e);
+         }
++    }
++
++    private static String scalar(JsonNode n) {
++        if (n == null || n.isNull() || !(n.isTextual() || n.isNumber() || n.isBoolean())) {
++            throw new PolicyException("value/values entries must be string, number or boolean");
++        }
++        return n.asText();
++    }
++
++    private static void checkFields(JsonNode node, Set<String> allowed, String path) {
++        node.fieldNames().forEachRemaining(field -> {
++            if (!allowed.contains(field)) throw new PolicyException(path + ": unknown field '" + field + "'");
++        });
+     }
+ 
+     private static String text(JsonNode n, String field, String where) {
+@@ -150,3 +176,4 @@
+         return v.asText();
+     }
+ }
++
+--- a/src/main/java/kz/abac/RuleNode.java
++++ b/src/main/java/kz/abac/RuleNode.java
+@@ -2,6 +2,12 @@
+ 
+ /** Ереже ағашының түйіні (Composite үлгісі). */
+ public interface RuleNode {
+-    /** Түйін шарты сұраныс атрибуттарымен орындала ма. */
+-    boolean evaluate(AttributeContext ctx);
++    /** Internal evaluation must preserve missing/invalid data through all nested nodes. */
++    MatchResult evaluateResult(AttributeContext ctx);
++
++    /** Compatibility facade for callers: only a proven TRUE matches. */
++    default boolean evaluate(AttributeContext ctx) {
++        return evaluateResult(ctx) == MatchResult.TRUE;
++    }
+ }
++
+--- /dev/null
++++ b/src/main/java/kz/abac/MatchResult.java
+@@ -0,0 +1,16 @@
++package kz.abac;
++
++/** Strong Kleene three-valued logic; unknown must never be negated into true. */
++public enum MatchResult {
++    TRUE, FALSE, INDETERMINATE;
++
++    public static MatchResult of(boolean value) { return value ? TRUE : FALSE; }
++
++    public MatchResult not() {
++        return switch (this) {
++            case TRUE -> FALSE;
++            case FALSE -> TRUE;
++            case INDETERMINATE -> INDETERMINATE;
++        };
++    }
++}

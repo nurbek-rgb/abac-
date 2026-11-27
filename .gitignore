@@ -1,0 +1,9 @@
+target/
+output/
+*.db
+*.db-shm
+*.db-wal
+.idea/
+*.iml
+.DS_Store
+dist/*.jar

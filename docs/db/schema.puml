@@ -1,0 +1,19 @@
+@startuml
+skinparam shadowing false
+title SQLite audit schema
+entity audit_records {
+  * id : INTEGER <<PK AUTOINCREMENT>>
+  --
+  * timestamp : TEXT (ISO-8601 UTC)
+  * attributes_json : TEXT (JSON object)
+  * effect : TEXT (PERMIT / DENY)
+  policy_id : TEXT (nullable)
+  * reason : TEXT
+}
+note right of audit_records
+Policy configuration lives in JSON files.
+policy_id is a label, not a foreign key.
+No patient/person database is created.
+No fictional tables or relations are shown.
+end note
+@enduml

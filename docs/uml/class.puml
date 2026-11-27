@@ -1,0 +1,87 @@
+@startuml
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+title ABAC — Classes implemented in src/main/java
+interface RuleNode {
+  +evaluateResult(ctx): MatchResult
+  +evaluate(ctx): boolean
+}
+enum MatchResult {
+  TRUE
+  FALSE
+  INDETERMINATE
+}
+class ConditionNode {
+  -attribute: String
+  -valueAttribute: String
+  -operator: Operator
+}
+class AndNode
+class OrNode
+class NotNode
+RuleNode <|.. ConditionNode
+RuleNode <|.. AndNode
+RuleNode <|.. OrNode
+RuleNode <|.. NotNode
+AndNode o-- "1..*" RuleNode : children
+OrNode o-- "1..*" RuleNode : children
+NotNode o-- "1" RuleNode : child
+RuleNode --> MatchResult
+class AttributeContext {
+  -attributes: Map<String,String>
+  +get(name): Optional<String>
+}
+class Policy {
+  -id: String
+  -effect: Effect
+  +evaluate(ctx): Effect
+}
+class PolicyEngine {
+  -policies: List<Policy>
+  +evaluate(ctx): Decision
+}
+class PolicyLoader {
+  +load(path): List<Policy>
+}
+class Decision <<record>>
+Policy o-- "1" RuleNode
+PolicyEngine o-- "*" Policy
+PolicyLoader ..> Policy : constructs
+PolicyEngine ..> AttributeContext
+PolicyEngine --> Decision
+class BatchEvaluator {
+  -pool: ExecutorService
+  +evaluateAll(requests): List<Decision>
+  +close()
+}
+class AuditedEngine {
+  +evaluate(ctx): Decision
+}
+interface "Repository<T>" as Repository {
+  +save(record): T
+  +findById(id): Optional<T>
+  +findAll(): List<T>
+  +deleteById(id): boolean
+  +findWhere(predicate): List<T>
+}
+class InMemoryAuditRepository
+class SqliteAuditRepository {
+  -connection: Connection
+  +close()
+}
+class AuditRecord <<record>>
+class AuditStats <<record>>
+class AuditExporter
+BatchEvaluator ..> AuditedEngine : Function callback
+AuditedEngine --> PolicyEngine
+AuditedEngine --> Repository : AuditRecord
+Repository <|.. InMemoryAuditRepository
+Repository <|.. SqliteAuditRepository
+Repository ..> AuditRecord
+AuditStats ..> AuditRecord : Stream
+AuditExporter ..> AuditRecord : CSV / JSON
+note bottom of BatchEvaluator
+Callback may also call PolicyEngine directly.
+Helper/entrypoint classes omitted for readability.
+end note
+@enduml

@@ -1,0 +1,27 @@
+@startuml
+skinparam shadowing false
+title Missing device under NOT — audited request
+actor Caller
+participant AuditedEngine as Audit
+participant PolicyEngine as Engine
+participant "Policy + RuleNode tree" as Rules
+database "SQLite repository" as DB
+Caller -> Audit : evaluate(ctx without device)
+Audit -> Engine : evaluate(ctx)
+Engine -> Rules : evaluate(ctx)
+activate Rules
+Rules -> Rules : device EQ unknown = INDETERMINATE
+Rules -> Rules : NOT(INDETERMINATE) = INDETERMINATE
+Rules --> Engine : Effect.INDETERMINATE (PERMIT policy)
+deactivate Rules
+Engine -> Engine : no proven PERMIT; default DENY
+Engine --> Audit : Decision(DENY, policyId, reason)
+Audit -> DB : save(AuditRecord)
+alt save succeeds
+  DB --> Audit : stored record with ID
+  Audit --> Caller : Decision(DENY)
+else database failure
+  DB --> Audit : AuditException
+  Audit --> Caller : exception (no permission returned)
+end
+@enduml

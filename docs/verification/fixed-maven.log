@@ -1,0 +1,91 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ---------------------< kz.abac:abac-policy-engine >---------------------
+[INFO] Building abac-policy-engine 1.1.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- clean:3.2.0:clean (default-clean) @ abac-policy-engine ---
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ abac-policy-engine ---
+[INFO] skip non existing resourceDirectory /workspace/scratch/be34220c89dc/ABAC_Policy_Engine/src/main/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:compile (default-compile) @ abac-policy-engine ---
+[INFO] Recompiling the module because of changed source code.
+[INFO] Compiling 25 source files with javac [debug release 17] to target/classes
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ abac-policy-engine ---
+[INFO] skip non existing resourceDirectory /workspace/scratch/be34220c89dc/ABAC_Policy_Engine/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.13.0:testCompile (default-testCompile) @ abac-policy-engine ---
+[INFO] Recompiling the module because of changed dependency.
+[INFO] Compiling 11 source files with javac [debug release 17] to target/test-classes
+[INFO] 
+[INFO] --- surefire:3.5.2:test (default-test) @ abac-policy-engine ---
+[INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
+[INFO] 
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running kz.abac.MissingAttributeSecurityTest
+[INFO] Tests run: 22, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.141 s -- in kz.abac.MissingAttributeSecurityTest
+[INFO] Running kz.abac.StrictPolicyInputTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.251 s -- in kz.abac.StrictPolicyInputTest
+[INFO] Running kz.abac.HospitalPoliciesTest
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.022 s -- in kz.abac.HospitalPoliciesTest
+[INFO] Running kz.abac.ThreeValuedLogicTest
+[INFO] Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.061 s -- in kz.abac.ThreeValuedLogicTest
+[INFO] Running kz.abac.BatchEvaluatorTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.035 s -- in kz.abac.BatchEvaluatorTest
+[INFO] Running kz.abac.PolicyLoaderTest
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.018 s -- in kz.abac.PolicyLoaderTest
+[INFO] Running kz.abac.ConditionNodeTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in kz.abac.ConditionNodeTest
+[INFO] Running kz.abac.PolicyEngineTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in kz.abac.PolicyEngineTest
+[INFO] Running kz.abac.AuditIntegrationTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.371 s -- in kz.abac.AuditIntegrationTest
+[INFO] Running kz.abac.repo.InMemoryAuditRepositoryTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in kz.abac.repo.InMemoryAuditRepositoryTest
+[INFO] Running kz.abac.repo.SqliteAuditRepositoryTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in kz.abac.repo.SqliteAuditRepositoryTest
+[INFO] 
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 99, Failures: 0, Errors: 0, Skipped: 0
+[INFO] 
+[INFO] 
+[INFO] --- jar:3.4.1:jar (default-jar) @ abac-policy-engine ---
+[INFO] Building jar: /workspace/scratch/be34220c89dc/ABAC_Policy_Engine/target/abac-policy-engine-1.1.0.jar
+[INFO] 
+[INFO] --- shade:3.6.0:shade (default) @ abac-policy-engine ---
+[INFO] Including com.fasterxml.jackson.core:jackson-databind:jar:2.18.2 in the shaded jar.
+[INFO] Including com.fasterxml.jackson.core:jackson-annotations:jar:2.18.2 in the shaded jar.
+[INFO] Including com.fasterxml.jackson.core:jackson-core:jar:2.18.2 in the shaded jar.
+[INFO] Including org.xerial:sqlite-jdbc:jar:3.47.1.0 in the shaded jar.
+[INFO] Including org.slf4j:slf4j-nop:jar:2.0.16 in the shaded jar.
+[INFO] Including org.slf4j:slf4j-api:jar:2.0.16 in the shaded jar.
+[WARNING] Discovered module-info.class. Shading will break its strong encapsulation.
+[WARNING] slf4j-api-2.0.16.jar, slf4j-nop-2.0.16.jar define 1 overlapping resource: 
+[WARNING]   - META-INF/LICENSE.txt
+[WARNING] jackson-annotations-2.18.2.jar, jackson-core-2.18.2.jar, jackson-databind-2.18.2.jar define 2 overlapping resources: 
+[WARNING]   - META-INF/LICENSE
+[WARNING]   - META-INF/NOTICE
+[WARNING] jackson-core-2.18.2.jar, jackson-databind-2.18.2.jar, slf4j-api-2.0.16.jar, slf4j-nop-2.0.16.jar, sqlite-jdbc-3.47.1.0.jar define 1 overlapping classes: 
+[WARNING]   - META-INF.versions.9.module-info
+[WARNING] abac-policy-engine-1.1.0.jar, jackson-annotations-2.18.2.jar, jackson-core-2.18.2.jar, jackson-databind-2.18.2.jar, slf4j-api-2.0.16.jar, slf4j-nop-2.0.16.jar, sqlite-jdbc-3.47.1.0.jar define 1 overlapping resource: 
+[WARNING]   - META-INF/MANIFEST.MF
+[WARNING] maven-shade-plugin has detected that some files are
+[WARNING] present in two or more JARs. When this happens, only one
+[WARNING] single version of the file is copied to the uber jar.
+[WARNING] Usually this is not harmful and you can skip these warnings,
+[WARNING] otherwise try to manually exclude artifacts based on
+[WARNING] mvn dependency:tree -Ddetail=true and the above output.
+[WARNING] See https://maven.apache.org/plugins/maven-shade-plugin/
+[INFO] Attaching shaded artifact.
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  14.422 s
+[INFO] Finished at: 2026-11-27T09:03:04+05:00
+[INFO] ------------------------------------------------------------------------

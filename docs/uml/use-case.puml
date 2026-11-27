@@ -1,0 +1,27 @@
+@startuml
+left to right direction
+skinparam shadowing false
+title ABAC Policy Engine — Use cases (solo project)
+actor "Policy administrator" as Admin
+actor "Requesting application\n(doctor / nurse / registrar)" as Client
+actor Auditor
+rectangle "Console ABAC system" {
+  usecase "Load and validate\nJSON policies" as Load
+  usecase "Evaluate access\nPERMIT / DENY" as Eval
+  usecase "Evaluate batch\nwith worker pool" as Batch
+  usecase "Persist audit\nin SQLite" as Audit
+  usecase "Export CSV / JSON\nand statistics" as Report
+}
+Admin --> Load
+Client --> Eval
+Client --> Batch
+Batch ..> Eval : <<include>>
+Eval ..> Load : <<precondition>>
+Batch ..> Audit : <<include>>
+Auditor --> Report
+Report ..> Audit : reads records
+note bottom of Audit
+AuditedEngine persists before returning.
+Main core demo can evaluate without audit.
+end note
+@enduml

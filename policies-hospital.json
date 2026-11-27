@@ -1,0 +1,137 @@
+{
+  "policies": [
+    {
+      "id": "H1",
+      "effect": "PERMIT",
+      "description": "Дәрігер өз бөлімінің жазбасын оқиды",
+      "condition": {
+        "and": [
+          {
+            "attribute": "role",
+            "operator": "eq",
+            "value": "doctor"
+          },
+          {
+            "attribute": "action",
+            "operator": "eq",
+            "value": "read"
+          },
+          {
+            "attribute": "device",
+            "operator": "eq",
+            "value": "corporate"
+          },
+          {
+            "attribute": "department",
+            "operator": "eq",
+            "valueAttribute": "record_department"
+          }
+        ]
+      }
+    },
+    {
+      "id": "H2",
+      "effect": "PERMIT",
+      "description": "Мейірбике өз бөлімінің жазбасын жұмыс уақытында оқиды",
+      "condition": {
+        "and": [
+          {
+            "attribute": "role",
+            "operator": "eq",
+            "value": "nurse"
+          },
+          {
+            "attribute": "action",
+            "operator": "eq",
+            "value": "read"
+          },
+          {
+            "attribute": "device",
+            "operator": "eq",
+            "value": "corporate"
+          },
+          {
+            "attribute": "department",
+            "operator": "eq",
+            "valueAttribute": "record_department"
+          },
+          {
+            "attribute": "time",
+            "operator": "time_between",
+            "values": [
+              "08:00",
+              "18:00"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "H3",
+      "effect": "PERMIT",
+      "description": "Дәрігерге шұғыл жағдайда оқу рұқсаты",
+      "condition": {
+        "and": [
+          {
+            "attribute": "role",
+            "operator": "eq",
+            "value": "doctor"
+          },
+          {
+            "attribute": "action",
+            "operator": "eq",
+            "value": "read"
+          },
+          {
+            "attribute": "device",
+            "operator": "eq",
+            "value": "corporate"
+          },
+          {
+            "attribute": "emergency",
+            "operator": "eq",
+            "value": "true"
+          }
+        ]
+      }
+    },
+    {
+      "id": "H4",
+      "effect": "DENY",
+      "description": "Мейірбикеге ем тағайындауға тыйым",
+      "condition": {
+        "and": [
+          {
+            "attribute": "role",
+            "operator": "eq",
+            "value": "nurse"
+          },
+          {
+            "attribute": "action",
+            "operator": "eq",
+            "value": "prescribe"
+          }
+        ]
+      }
+    },
+    {
+      "id": "H5",
+      "effect": "DENY",
+      "description": "Тіркеушіге медициналық жазбаны оқуға тыйым",
+      "condition": {
+        "and": [
+          {
+            "attribute": "role",
+            "operator": "eq",
+            "value": "registrar"
+          },
+          {
+            "attribute": "action",
+            "operator": "eq",
+            "value": "read"
+          }
+        ]
+      }
+    }
+  ]
+}
