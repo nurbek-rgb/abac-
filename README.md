@@ -1,0 +1,134 @@
+# ABAC Policy Engine — жеке жоба
+
+Java 17 + Maven. Саясаттарды JSON-нан оқитын, AND/OR/NOT ағашын бағалайтын,
+шешімдерді SQLite аудит журналына сақтайтын консольдік жүйе.
+Домен: ауруханадағы медициналық жазбаларға қолжетімділікті басқарудың оқу моделі.
+
+2026-11-27 тексеруінің негізі: [nurbek-rgb/abac-](https://github.com/nurbek-rgb/abac-),
+commit `5035b9e1d308fc51b378863c94953ae013c9b7a6`.
+Осы пакетте дайындалған түзетулер GitHub-қа жіберілген жоқ.
+
+## Жылдам іске қосу
+
+ZIP-ті толық шығарыңыз. Java 17 немесе жоғары нұсқа қажет (`java -version`).
+Дайын JAR ішіне тәуелділіктер енгізілген; демоға Maven/интернет қажет емес.
+
+Windows:
+
+```bat
+run.bat
+run.bat --hospital
+```
+
+Linux/macOS:
+
+```bash
+sh run.sh
+sh run.sh --hospital
+```
+
+Бірінші команда алты қауіпсіздік сценарийін шығарады. Соңғы сценарийде
+`device` жоқ → **DENY**. Екінші команда сегіз аурухана сұранысын төрт worker арқылы
+өңдеп, `output/audit.db`, `output/audit.csv`, `output/audit.json` жасайды.
+Жаңа бос output үшін нәтиже: **3 PERMIT, 5 DENY**, H3 шұғыл рұқсаты — 1.
+Қайталап іске қоссаңыз, SQLite журналына жаңа жазбалар қосылады; есеп барлық іске қосуды қамтиды.
+Нәтижелердің экрандағы реті сұраныс ретімен, аудит ID реті worker аяқталуына байланысты.
+
+## IntelliJ IDEA / Maven
+
+1. ZIP-ті шығарып, ішіндегі **pom.xml** файлын Open as Project арқылы ашыңыз.
+2. Project SDK және Maven Runner JRE ретінде JDK 17 таңдаңыз.
+3. Maven тәуелділіктерін жүктеңіз. Working directory — `pom.xml` тұрған папка.
+4. `kz.abac.Main.main()` немесе `kz.abac.HospitalDemo.main()` іске қосыңыз.
+
+```bash
+mvn clean verify
+mvn compile exec:java
+mvn compile exec:java -Dexec.mainClass=kz.abac.HospitalDemo
+java -jar target/abac-policy-engine-1.1.0-all.jar --hospital
+```
+
+Өз файлдарыңызбен:
+
+```bash
+java -jar dist/abac-policy-engine-1.1.0-all.jar policies.json
+java -jar dist/abac-policy-engine-1.1.0-all.jar --hospital policies-hospital.json data/requests-hospital.json output
+```
+
+## Қауіпсіздік ережесі
+
+Ескі нұсқада missing → false → NOT → true болатын. Жаңа нұсқада шарттың ішкі
+нәтижесі `TRUE`, `FALSE`, `INDETERMINATE`. Жоқ/бос атрибут, жоқ `valueAttribute`
+және жарамсыз сұраныс уақыты — `INDETERMINATE` (U). `NOT(U) = U`.
+Сыртқы `evaluate(ctx)` boolean әдісі тек TRUE үшін true қайтарады.
+
+| Шарт | Нәтиже |
+|---|---|
+| NOT TRUE / NOT FALSE / NOT U | FALSE / TRUE / U |
+| FALSE AND U / TRUE AND U | FALSE / U |
+| TRUE OR U / FALSE OR U | TRUE / U |
+
+`OR` ішіндегі толық дәлелденген балама рұқсатты сақтайды: `role=doctor OR device=corporate`
+үшін role=doctor жеткілікті. Барлық көрсетілген атрибутты міндетті ету керек болса, оларды
+`AND` арқылы міндеттеңіз. Қатысы жоқ тармақтың жетіспейтін атрибуты бүкіл сұранысты автоматты түрде бұғаттамайды.
+
+| Саясаттарды біріктіру | Қорытынды |
+|---|---|
+| Нақты сәйкес DENY бар | DENY |
+| DENY шарты U, сәйкес болуы мүмкін | DENY, тіпті басқа PERMIT болса да |
+| Осындай DENY жоқ, кемінде бір дәлелденген PERMIT бар | PERMIT |
+| Тек U PERMIT бар немесе ешбір саясат сәйкес емес | DENY |
+| Бағалау қатесі / null сұраныс | DENY |
+
+Бұл — жобаның құжатталған fail-closed ережесі; толық XACML іске асырылымы емес.
+`AuditedEngine` аудитті сақтай алмаса, exception шығарып, PERMIT нәтижесін қайтармайды.
+
+## Құрылым
+
+```text
+src/main/java/kz/abac/       қозғалтқыш, түйіндер, loader, demo, batch
+src/main/java/kz/abac/audit/ аудит, Stream есептері, CSV/JSON
+src/main/java/kz/abac/repo/  Repository<T>, memory және SQLite CRUD
+src/test/java/              JUnit 5: бұрынғы және жаңа тесттер
+policies.json               негізгі төрт демонстрациялық саясат
+policies-hospital.json      H1–H5 аурухана саясаты
+data/                      JSON сұраныстар және қауіпсіздік мысалы
+docs/                      зерттеу, талаптар, қауіпсіздік есебі, қорғау
+docs/uml/                  Use Case, Class, Sequence PNG + PlantUML
+docs/db/                   SQLite схема PNG + SQL + PlantUML
+docs/verification/         нақты тест және демо нәтижелері
+dist/                      іске қосуға дайын JAR (ZIP ішінде)
+```
+
+## Фото талаптарына сәйкестік
+
+| Талап | Нақты іске асырылған бөлік |
+|---|---|
+| ООП | RuleNode интерфейсі, төрт іске асыруы, private final өрістер, интерфейстерді іске асыру, exception класының мұрагерлігі, полиморфизм |
+| Коллекциялар, Generics | List саясаттар/нәтижелер; Set ID/рөлдер; Map атрибуттар/есеп; Repository<T> |
+| Stream API | AuditStats топтастыру/санау; Repository.findWhere; CSV жолдарын құру |
+| SQLite + JDBC | SqliteAuditRepository: CREATE, INSERT, SELECT, UPDATE, DELETE; PreparedStatement |
+| Файлдар | PolicyLoader/RequestLoader JSON оқу; AuditExporter CSV/JSON жазу |
+| Көпағындылық | BatchEvaluator: ExecutorService, Future, 1–64 worker, рет пен shutdown сақтау |
+| Maven + JUnit | pom.xml, src/main/java, src/test/java; нақты нәтиже docs/verification/RESULTS.md ішінде |
+| Соло жұмыс | Бір авторға арналған кезеңдер, branch/PR үлгісі docs/solo-work.md ішінде |
+| Зерттеу, UML, ДҚ схемасы, қорғау | docs/research.md, docs/uml, docs/db, docs/defense.md |
+
+Фотода оң жақ бағанның бір бөлігі кесілген. `docs/requirements.md` көрінетін талаптар
+мен қабылданған жорамалдарды бөлек көрсетеді. GitHub commit/branch/PR талаптары —
+нақты репозиторийдегі жұмыс; олар файлдармен орындалды деп есептелмейді.
+
+## Өзгерістер мен шектеулер
+
+- `docs/security-review.md` — мәселе, бастапқы кодпен салыстыру, семантика, API өзгерісі.
+- `docs/verification/RESULTS.md` — тест санақтары және орындалған командалар.
+- `docs/migration.md` — ескі түбірдегі .java файлдарын Maven құрылымына көшіру.
+- `docs/verification/core-security.patch` — бастапқы негізгі Java кластарына diff.
+- Түпнұсқа репозиторийде жоқ JSON саясаттары мен аудит модульдері осы пакетте жасалды.
+- Бұл консольдік оқу жобасы. UI, аутентификация, желілік API, нақты пациент базасы қосылмаған.
+- `role/device/emergency` сияқты атрибуттардың шынайылығын сыртқы сенімді жүйе растауы тиіс.
+- `NOT(device=unknown)` белгісіз мәндердің бәрін бұғаттамайды; өндірістік whitelist керек болса,
+  `device IN [corporate]` пайдаланыңыз. Аурухана саясаттарында дәл осы шектеу бар.
+- SQLite CRUD оқу үшін ашық; журнал immutable/tamper-proof емес, шифрлау қосылмаған.
+- Batch қатесі кезінде бұған дейін жазылған аудит сақталады; batch атомарлы транзакция емес.
+- Өткен тесттер тексерілген сценарийлерді растайды; барлық ықтимал қатенің жоқтығын дәлелдемейді.
